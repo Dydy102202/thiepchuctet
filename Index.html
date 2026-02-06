@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <!-- Viewport giúp web hiển thị đẹp trên điện thoại -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thiệp Chúc Mừng Năm Mới</title>
+
+    <style>
+        /* Reset + nền trang */
+        body {
+            margin: 0;
+            height: 100vh;
+            background: radial-gradient(circle at top, #ffecd2, #fcb69f);
+            font-family: 'Segoe UI', sans-serif;
+
+            /* Canh giữa thiệp */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            /* Ẩn thanh cuộn */
+            overflow: hidden;
+        }
+
+        /* Khung tạo hiệu ứng 3D */
+        .card-container {
+            perspective: 1200px;
+            z-index: 5;
+        }
+
+        /* Thiệp */
+        .card {
+            width: 300px;
+            height: 420px;
+            position: relative;
+
+            /* Cho phép xoay 3D */
+            transform-style: preserve-3d;
+            transition: transform 1.2s;
+
+            cursor: pointer;
+        }
+
+        /* Khi có class flip thì xoay 180 độ */
+        .card.flip {
+            transform: rotateY(180deg);
+        }
+
+        /* Mặt trước & sau */
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+
+            /* Ẩn mặt sau khi chưa xoay */
+            backface-visibility: hidden;
+
+            border-radius: 20px;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.35);
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+        }
+
+        /* Mặt trước */
+        .card-front {
+            background: linear-gradient(135deg, #ff4e50, #f9d423);
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        /* Mặt sau */
+        .card-back {
+            background: white;
+            color: #e74c3c;
+
+            /* Xoay sẵn 180 độ */
+            transform: rotateY(180deg);
+
+            font-size: 18px;
+            line-height: 1.6;
+        }
+
+        .card-back span {
+            display: block;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        /* Canvas pháo hoa */
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        /* Responsive cho điện thoại */
+        @media (max-width: 500px) {
+            .card {
+                width: 260px;
+                height: 380px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- Thiệp -->
+<div class="card-container">
+    <div class="card" onclick="openCard()">
+
+        <!-- Mặt trước -->
+        <div class="card-face card-front">
+            🎆 Chúc Mừng Năm Mới 🎆<br><br>
+            <small>(Nhấn để mở thiệp)</small>
+        </div>
+
+        <!-- Mặt sau -->
+        <div class="card-face card-back">
+            <span>🌸 2026 🌸</span>
+            <div id="message"></div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Nhạc Tết Việt Nam -->
+<audio id="music" loop preload="auto">
+    <source src="long-phung-sum-vay.mp3" type="audio/mpeg">
+</audio>
+
+
+<!-- Canvas pháo hoa -->
+<canvas id="fireworks"></canvas>
+
+<script>
+    /* ======================
+       LẤY TÊN TỪ LINK
+       Ví dụ: ?name=Vy
+    ====================== */
+
+    const params = new URLSearchParams(window.location.search);
+    const name = params.get("name") || "bạn"; // Nếu không có name
+
+    /* ======================
+       XỬ LÝ MỞ THIỆP
+    ====================== */
+
+    const card = document.querySelector(".card");
+    const music = document.getElementById("music");
+    const message = document.getElementById("message");
+
+    function openCard() {
+        // Xoay thiệp
+        card.classList.toggle("flip");
+
+        // Phát nhạc (chỉ chạy khi click → không bị chặn)
+        music.play();
+
+        // Hiển thị lời chúc theo tên trong link
+        message.innerHTML = `
+            Chúc <b>${decodeURIComponent(name)}</b><br>
+            Năm mới an khang – thịnh vượng 🧧<br>
+            Gia đình hạnh phúc, vạn sự như ý ✨<br>
+            Thành công và bình an suốt năm ❤️
+        `;
+    }
+
+    /* ======================
+       PHÁO HOA CANVAS
+    ====================== */
+
+    const canvas = document.getElementById("fireworks");
+    const ctx = canvas.getContext("2d");
+
+    function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    resizeCanvas();
+
+    const particles = [];
+
+    function random(min, max) {
+        return Math.random() * (max - min) + min;
+    }
+
+    function createFirework() {
+        const x = random(0, canvas.width);
+        const y = random(0, canvas.height / 2);
+
+        const colors = ["#ff4e50", "#f9d423", "#00c9ff", "#92fe9d"];
+
+        for (let i = 0; i < 40; i++) {
+            particles.push({
+                x: x,
+                y: y,
+                vx: random(-3, 3),
+                vy: random(-3, 3),
+                alpha: 1,
+                color: colors[Math.floor(Math.random() * colors.length)]
+            });
+        }
+    }
+
+    function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        particles.forEach((p, i) => {
+            p.x += p.vx;
+            p.y += p.vy;
+            p.alpha -= 0.02;
+
+            ctx.globalAlpha = p.alpha;
+            ctx.fillStyle = p.color;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, 2, 0, Math.PI * 2);
+            ctx.fill();
+
+            if (p.alpha <= 0) particles.splice(i, 1);
+        });
+
+        ctx.globalAlpha = 1;
+        requestAnimationFrame(animate);
+    }
+
+    setInterval(createFirework, 800);
+    animate();
+
+    window.addEventListener("resize", resizeCanvas);
+</script>
+
+</body>
+</html>
